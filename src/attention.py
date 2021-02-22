@@ -93,7 +93,7 @@ class SynthesizerAttention(nn.Module):
 
         # calculate query, key, values for all heads in batch and move head forward to be the batch dim
         w1 = self.w1(x).view(B, T, self.n_head, C // self.n_head).transpose(1, 2) # (B, nh, T, hs) (1, 8, 32, 32)
-        print("w1", w1.shape)
+        # print("w1", w1.shape)
         w2 = self.w2[:,:T] #(hs, T) (32, 127)
         b2 = self.b2[:T] #(T) (127)
         v = self.value(x).view(B, T, self.n_head, C // self.n_head).transpose(1, 2) # (B, nh, T, hs) (1, 8, 32, 32)
