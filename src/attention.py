@@ -102,7 +102,7 @@ class SynthesizerAttention(nn.Module):
         # att = (q @ k.transpose(-2, -1)) * (1.0 / math.sqrt(k.size(-1)))
         att = F.relu(w1) #
         print("x", x.shape)
-        print("aaaaaaaaaaa", att.shape) (1, 8, 32, 32)
+        print("aaaaaaaaaaa", att.shape) #(1, 8, 32, 32)
         print("w2", w2.shape)
         print("b2", b2.shape)
         print("w1", w1.shape)
