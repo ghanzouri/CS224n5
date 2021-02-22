@@ -93,19 +93,19 @@ class SynthesizerAttention(nn.Module):
 
         # calculate query, key, values for all heads in batch and move head forward to be the batch dim
         w1 = self.w1(x).view(B, T, self.n_head, C // self.n_head).transpose(1, 2) # (B, nh, T, hs)
-        w2 = self.w2 #(hs, block_size-1)
-        b2 = self.b2 #(block_size-1)
+        w2 = self.w2 #(hs, T)
+        b2 = self.b2 #(T)
         v = self.value(x).view(B, T, self.n_head, C // self.n_head).transpose(1, 2) # (B, nh, T, hs)
 
         # causal self-attention; Self-attend: (B, nh, T, hs) x (B, nh, hs, T) -> (B, nh, T, T)
         # att = (q @ k.transpose(-2, -1)) * (1.0 / math.sqrt(k.size(-1)))
         att = F.relu(w1) #
-        att = att @ w2 # (B, nh, T, hs) * (hs, block_size-1) = (B, nh, T, block_size-1)
+        att = att @ w2 # (B, nh, T, hs) * (hs, T) = (B, nh, T, T)
         att += b2
         att = att.masked_fill(self.mask[:,:,:T,:self.block_size-1] == 0, -1e10) # todo: just use float('-inf') instead?
         att = F.softmax(att, dim=-1)
         att = self.attn_drop(att)
-        y = att.transpose(2, 3) @ v # (B, nh, block_size-1, T) x (B, nh, T, hs) -> (B, nh, block_size-1, hs)
+        y = att @ v # (B, nh, T, T) x (B, nh, T, hs) -> (B, nh, T, hs)
         y = y.transpose(1, 2).contiguous().view(B, T, C) # re-assemble all head outputs side by side
 
         # output projection
