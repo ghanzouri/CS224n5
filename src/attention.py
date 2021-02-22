@@ -102,11 +102,9 @@ class SynthesizerAttention(nn.Module):
         att = F.relu(w1) #
         att = att @ w2 # (B, nh, T, hs) * (hs, T) = (B, nh, T, T)
         att += b2
-        att = att.masked_fill(self.mask[:,:,:T,:self.block_size-1] == 0, -1e10) # todo: just use float('-inf') instead?
+        # att = att.masked_fill(self.mask[:,:,:T,:self.block_size-1] == 0, -1e10) # todo: just use float('-inf') instead?
         att = F.softmax(att, dim=-1)
         att = self.attn_drop(att)
-        print("attsize",type(att))
-        print("vsize",type(v))
         y = att @ v # (B, nh, T, T) x (B, nh, T, hs) -> (B, nh, T, hs)
         y = y.transpose(1, 2).contiguous().view(B, T, C) # re-assemble all head outputs side by side
 
