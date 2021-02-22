@@ -44,9 +44,11 @@ class Block(nn.Module):
         self.ln1 = nn.LayerNorm(config.n_embd)
         self.ln2 = nn.LayerNorm(config.n_embd)
         if config.additive:
-            self.attn = attention.AdditiveSelfAttention(config)
+            # self.attn = attention.AdditiveSelfAttention(config)
+            self.attn = attention.SynthesizerAttention(config)
         else:
             self.attn = attention.CausalSelfAttention(config)
+            
         self.mlp = nn.Sequential(
             nn.Linear(config.n_embd, 4 * config.n_embd),
             nn.GELU(),

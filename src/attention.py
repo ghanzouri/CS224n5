@@ -89,5 +89,27 @@ class SynthesizerAttention(nn.Module):
         #   - Paste over the CausalSelfAttention above and modify it minimally.
         #   - Consider especially the parameters self.w1, self.w2 and self.b2.
         #       How do these map to the matrices in the handout?
+        B, T, C = x.size()
 
-        raise NotImplementedError
+        # calculate query, key, values for all heads in batch and move head forward to be the batch dim
+        w1 = self.w1(x).view(B, T, self.n_head, C // self.n_head).transpose(1, 2) # (B, nh, T, hs)
+        w2 = self.w2 #(hs, block_size-1)
+        b2 = self.b2 #(block_size-1)
+        v = self.value(x).view(B, T, self.n_head, C // self.n_head).transpose(1, 2) # (B, nh, T, hs)
+
+        # causal self-attention; Self-attend: (B, nh, T, hs) x (B, nh, hs, T) -> (B, nh, T, T)
+        # att = (q @ k.transpose(-2, -1)) * (1.0 / math.sqrt(k.size(-1)))
+        att = F.relu(w1) # (B, nh, T, hs) * (hs, block_size-1)
+        att = att @ w2 #(B, nh, T, block_size-1)
+        att += b2
+        att = att.masked_fill(self.mask[:,:,:T,:T] == 0, -1e10) # todo: just use float('-inf') instead?
+        att = F.softmax(att, dim=-1)
+        att = self.attn_drop(att)
+        y = att @ v # (B, nh, T, T) x (B, nh, T, hs) -> (B, nh, T, hs)
+        y = y.transpose(1, 2).contiguous().view(B, T, C) # re-assemble all head outputs side by side
+
+        # output projection
+        y = self.resid_drop(self.proj(y))
+        return y
+
+        # raise NotImplementedError

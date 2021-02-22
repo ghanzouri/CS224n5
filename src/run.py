@@ -55,12 +55,16 @@ Don't change above here; write your code below
 """
 
 if args.variant == 'vanilla':
-    pass # TODO [part c]: Make some model here
+    # pass # TODO [part c]: Make some model here
     model = model.GPT(mconf)
     model = model.to(device)
 
 elif args.variant == 'synthesizer':
-    pass # TODO [part g]: Make some other model here
+    # pass # TODO [part g]: Make some other model here
+    mconf = model.GPTConfig(pretrain_dataset.vocab_size, pretrain_dataset.block_size,
+        n_layer=4, n_head=8, n_embd=256, additive = True)
+    model = model.GPT(mconf)
+    model = model.to(device)
 
 # From here on, your code should be identical independent of which
 # variant (vanilla or synthesizer) has been chosen.
