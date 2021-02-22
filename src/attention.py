@@ -110,7 +110,7 @@ class SynthesizerAttention(nn.Module):
         # print("attw2", att.shape)
         att += b2
         # print("attb2", att.shape)
-        att = att.masked_fill(self.mask[:,:,:T,:self.block_size-1] == 0, -1e10) # todo: just use float('-inf') instead?
+        att = att.masked_fill(self.mask[:,:,:T,:T] == 0, -1e10) # todo: just use float('-inf') instead?
         att = F.softmax(att, dim=-1)
         # print("attsoft", att.shape)
         att = self.attn_drop(att)
