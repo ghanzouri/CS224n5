@@ -99,13 +99,13 @@ class SynthesizerAttention(nn.Module):
 
         # causal self-attention; Self-attend: (B, nh, T, hs) x (B, nh, hs, T) -> (B, nh, T, T)
         # att = (q @ k.transpose(-2, -1)) * (1.0 / math.sqrt(k.size(-1)))
-        att = F.relu(w1) # (B, nh, T, hs) * (hs, block_size-1)
-        att = att @ w2 #(B, nh, T, block_size-1)
+        att = F.relu(w1) #
+        att = att @ w2 # (B, nh, T, hs) * (hs, block_size-1) = (B, nh, T, block_size-1)
         att += b2
         att = att.masked_fill(self.mask[:,:,:T,:self.block_size-1] == 0, -1e10) # todo: just use float('-inf') instead?
         att = F.softmax(att, dim=-1)
         att = self.attn_drop(att)
-        y = att @ v # (B, nh, T, T) x (B, nh, T, hs) -> (B, nh, T, hs)
+        y = att.transpose(2, 3) @ v # (B, nh, block_size-1, T) x (B, nh, T, hs) -> (B, nh, block_size-1, hs)
         y = y.transpose(1, 2).contiguous().view(B, T, C) # re-assemble all head outputs side by side
 
         # output projection
