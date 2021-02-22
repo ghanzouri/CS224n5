@@ -89,7 +89,7 @@ class SynthesizerAttention(nn.Module):
         #   - Paste over the CausalSelfAttention above and modify it minimally.
         #   - Consider especially the parameters self.w1, self.w2 and self.b2.
         #       How do these map to the matrices in the handout?
-        B, T, C = x.size()
+        B, T, C = x.size() # 1, 32, 256
 
         # calculate query, key, values for all heads in batch and move head forward to be the batch dim
         w1 = self.w1(x).view(B, T, self.n_head, C // self.n_head).transpose(1, 2) # (B, nh, T, hs) (1, 8, 32, 32)
@@ -102,14 +102,17 @@ class SynthesizerAttention(nn.Module):
         # att = (q @ k.transpose(-2, -1)) * (1.0 / math.sqrt(k.size(-1)))
         att = F.relu(w1) #
         print("x", x.shape)
-        print("aaaaaaaaaaa", att.shape)
+        print("aaaaaaaaaaa", att.shape) (1, 8, 32, 32)
         print("w2", w2.shape)
         print("b2", b2.shape)
         print("w1", w1.shape)
         att = att @ w2 # (B, nh, T, hs) * (hs, T) = (B, nh, T, T)
+        print("attw2", att.shape)
         att += b2
+        print("attb2", att.shape)
         # att = att.masked_fill(self.mask[:,:,:T,:self.block_size-1] == 0, -1e10) # todo: just use float('-inf') instead?
         att = F.softmax(att, dim=-1)
+        print("attsoft", att.shape)
         att = self.attn_drop(att)
         print("AAAAAAAAAAAAAA", att.shape)
         print("BBBBBBBBBBBBBB", v.shape)
