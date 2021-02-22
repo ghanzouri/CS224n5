@@ -3,6 +3,8 @@ import torch
 from torch.utils.data import Dataset
 import argparse
 import codecs
+import numpy as np
+
 """
 The input-output pairs (x, y) of the NameDataset are of the following form:
 
@@ -168,7 +170,27 @@ class CharCorruptionDataset(Dataset):
 
     def __getitem__(self, idx):
         # TODO [part e]: see spec above
-        raise NotImplementedError
+        # raise NotImplementedError
+        entry = self.data[idx]
+        trunc_index = int(random.randint(4, int(self.block_size*7/8)))
+        entry = entry[:trunc_index]
+        entry_len = len(entry)
+        masked_content_len = int(np.random.normal(loc=entry_len/4, scale=2))
+        masked_content_start_index = int(random.randint(0, int(entry_len*(3/8)) ))
+
+        prefix = entry[:masked_content_start_index]
+        masked_content = entry[masked_content_start_index: masked_content_start_index+masked_content_len]
+        suffix = entry[masked_content_start_index+masked_content_len:]
+
+        masked_string = prefix + self.MASK_CHAR + suffix + self.MASK_CHAR + masked_content + self.PAD_CHAR*(self.block_size-entry_len-2)
+        input = masked_string[:-1]
+        output = masked_string[1:]
+        x = torch.tensor([self.stoi[c] for c in input], dtype=torch.long)
+        y = torch.tensor([self.stoi[c] for c in output], dtype=torch.long)
+
+        return x, y
+
+
 
 """
 Code under here is strictly for your debugging purposes; feel free to modify
