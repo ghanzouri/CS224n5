@@ -94,28 +94,28 @@ class SynthesizerAttention(nn.Module):
         # calculate query, key, values for all heads in batch and move head forward to be the batch dim
         w1 = self.w1(x).view(B, T, self.n_head, C // self.n_head).transpose(1, 2) # (B, nh, T, hs) (1, 8, 32, 32)
         print("w1", w1.shape)
-        w2 = self.w2[:,:32] #(hs, T) (32, 127)
-        b2 = self.b2[:32] #(T) (127)
+        w2 = self.w2[:,:T] #(hs, T) (32, 127)
+        b2 = self.b2[:T] #(T) (127)
         v = self.value(x).view(B, T, self.n_head, C // self.n_head).transpose(1, 2) # (B, nh, T, hs) (1, 8, 32, 32)
 
         # causal self-attention; Self-attend: (B, nh, T, hs) x (B, nh, hs, T) -> (B, nh, T, T)
         # att = (q @ k.transpose(-2, -1)) * (1.0 / math.sqrt(k.size(-1)))
         att = F.relu(w1) #
-        print("x", x.shape)
-        print("aaaaaaaaaaa", att.shape) #(1, 8, 32, 32)
-        print("w2", w2.shape)
-        print("b2", b2.shape)
-        print("w1", w1.shape)
+        # print("x", x.shape)
+        # print("aaaaaaaaaaa", att.shape) #(1, 8, 32, 32)
+        # print("w2", w2.shape)
+        # print("b2", b2.shape)
+        # print("w1", w1.shape)
         att = att @ w2 # (B, nh, T, hs) * (hs, T) = (B, nh, T, T)
-        print("attw2", att.shape)
+        # print("attw2", att.shape)
         att += b2
-        print("attb2", att.shape)
-        # att = att.masked_fill(self.mask[:,:,:T,:self.block_size-1] == 0, -1e10) # todo: just use float('-inf') instead?
+        # print("attb2", att.shape)
+        att = att.masked_fill(self.mask[:,:,:T,:self.block_size-1] == 0, -1e10) # todo: just use float('-inf') instead?
         att = F.softmax(att, dim=-1)
-        print("attsoft", att.shape)
+        # print("attsoft", att.shape)
         att = self.attn_drop(att)
-        print("AAAAAAAAAAAAAA", att.shape)
-        print("BBBBBBBBBBBBBB", v.shape)
+        # print("AAAAAAAAAAAAAA", att.shape)
+        # print("BBBBBBBBBBBBBB", v.shape)
         y = att @ v # (B, nh, T, T) x (B, nh, T, hs) -> (B, nh, T, hs)
         y = y.transpose(1, 2).contiguous().view(B, T, C) # re-assemble all head outputs side by side
 
