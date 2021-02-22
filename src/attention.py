@@ -100,6 +100,10 @@ class SynthesizerAttention(nn.Module):
         # causal self-attention; Self-attend: (B, nh, T, hs) x (B, nh, hs, T) -> (B, nh, T, T)
         # att = (q @ k.transpose(-2, -1)) * (1.0 / math.sqrt(k.size(-1)))
         att = F.relu(w1) #
+        print("aaaaaaaaaaa", att.shape)
+        print("w2", w2.shape)
+        print("b2", b2.shape)
+        print("w1", w1.shape)
         att = att @ w2 # (B, nh, T, hs) * (hs, T) = (B, nh, T, T)
         att += b2
         # att = att.masked_fill(self.mask[:,:,:T,:self.block_size-1] == 0, -1e10) # todo: just use float('-inf') instead?
