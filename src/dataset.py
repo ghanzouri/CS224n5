@@ -194,7 +194,7 @@ class CharCorruptionDataset(Dataset):
 
 """
 Code under here is strictly for your debugging purposes; feel free to modify
-as desired.
+as desired.z
 """
 if __name__ == '__main__':
     argp = argparse.ArgumentParser()
